@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Site web Sira Flora SN - Plantes Naturelles",
   "scripts": {
-    "start": "npx serve . -p $PORT"
+    "start": "serve -s . -l tcp://0.0.0.0:$PORT"
   },
   "dependencies": {
     "serve": "^14.2.3"
