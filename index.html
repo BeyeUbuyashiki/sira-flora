@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sira Flora SN — Plantes Naturelles & Bien-être</title>
+<style>
+  /* ===== VARIABLES ===== */
+  :root {
+    --green-dark: #0D4A22;
+    --green-mid: #1B6B35;
+    --green-light: #2E8B57;
+    --gold: #E8A020;
+    --gold-light: #F5C242;
+    --brown: #8B4513;
+    --cream: #FFFDF5;
+    --white: #FFFFFF;
+    --dark: #081510;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--dark);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  #bg-canvas {
+    position: fixed; top:0; left:0;
+    width:100%; height:100%;
+    z-index:0; pointer-events:none;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top:0; left:0; right:0; z-index:1000;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:.9rem 2.5rem;
+    background: rgba(8,21,16,0.82);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid rgba(232,160,32,0.18);
+    transition: all .4s;
+  }
+  nav.scrolled { background:rgba(8,21,16,0.97); box-shadow:0 4px 30px rgba(0,0,0,.5); }
+  .nav-logo { display:flex; align-items:center; gap:.7rem; text-decoration:none; }
+  .nav-logo img { height:42px; width:auto; border-radius:6px; filter:drop-shadow(0 0 10px rgba(232,160,32,.35)) drop-shadow(0 2px 8px rgba(0,0,0,.4)); }
+  .nav-links { display:flex; gap:2rem; list-style:none; }
+  .nav-links a {
+    color:rgba(255,255,255,.85); text-decoration:none;
+    font-size:.95rem; font-weight:500; letter-spacing:.03em;
+    transition:color .3s; position:relative;
+  }
+  .nav-links a::after {
+    content:''; position:absolute; bottom:-4px; left:0; right:0;
+    height:2px; background:var(--gold); transform:scaleX(0); transition:transform .3s;
+  }
+  .nav-links a:hover { color:var(--gold-light); }
+  .nav-links a:hover::after { transform:scaleX(1); }
+  .cart-btn {
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));
+    border:none; border-radius:50px; padding:.55rem 1.3rem;
+    color:var(--dark); font-weight:700; font-size:.9rem; cursor:pointer;
+    display:flex; align-items:center; gap:.5rem;
+    transition:transform .2s, box-shadow .2s;
+    box-shadow:0 4px 15px rgba(232,160,32,.4);
+  }
+  .cart-btn:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(232,160,32,.6); }
+  .cart-count {
+    background:var(--green-dark); color:var(--white);
+    border-radius:50%; width:20px; height:20px;
+    font-size:.75rem; font-weight:700;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .burger { display:none; flex-direction:column; gap:5px; cursor:pointer; }
+  .burger span { width:25px; height:2px; background:var(--white); border-radius:2px; }
+
+  /* HERO */
+  #hero {
+    position:relative; z-index:1;
+    min-height:100vh;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    text-align:center; padding:8rem 2rem 5rem;
+  }
+  .hero-logo {
+    height:90px; width:auto;
+    margin-bottom:1.5rem;
+    filter:drop-shadow(0 0 30px rgba(232,160,32,.35)) drop-shadow(0 8px 25px rgba(0,0,0,.5));
+    animation:fadeInDown .8s ease both;
+  }
+  .hero-badge {
+    display:inline-flex; align-items:center; gap:.5rem;
+    background:rgba(232,160,32,.15); border:1px solid rgba(232,160,32,.4);
+    border-radius:50px; padding:.4rem 1.2rem;
+    font-size:.85rem; color:var(--gold-light);
+    margin-bottom:1.5rem; animation:fadeInDown .8s ease .1s both;
+  }
+  .hero-title {
+    font-size:clamp(3rem,8vw,6.5rem); font-weight:900; line-height:1.05;
+    animation:fadeInUp .9s ease .2s both;
+  }
+  .hero-title span {
+    display:block;
+    background:linear-gradient(135deg,var(--gold),var(--gold-light),#fff);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+  }
+  .hero-sub {
+    font-size:clamp(1rem,2.5vw,1.3rem); color:rgba(255,255,255,.7);
+    max-width:540px; margin:1.5rem auto 2.5rem; line-height:1.7;
+    animation:fadeInUp .9s ease .35s both;
+  }
+  .hero-ctas {
+    display:flex; gap:1rem; flex-wrap:wrap; justify-content:center;
+    animation:fadeInUp .9s ease .5s both;
+  }
+  .btn-primary {
+    background:linear-gradient(135deg,var(--gold),var(--gold-light));
+    color:var(--dark); font-weight:700; font-size:1rem;
+    padding:.9rem 2.2rem; border:none; border-radius:50px; cursor:pointer;
+    box-shadow:0 8px 30px rgba(232,160,32,.5); transition:transform .2s, box-shadow .2s;
+    text-decoration:none; display:inline-block;
+  }
+  .btn-primary:hover { transform:translateY(-3px); box-shadow:0 12px 40px rgba(232,160,32,.7); }
+  .btn-outline {
+    background:transparent; color:var(--white); font-weight:600; font-size:1rem;
+    padding:.9rem 2.2rem; border:1.5px solid rgba(255,255,255,.35);
+    border-radius:50px; cursor:pointer; transition:all .3s;
+    text-decoration:none; display:inline-block;
+  }
+  .btn-outline:hover { border-color:var(--gold); color:var(--gold); background:rgba(232,160,32,.08); }
+  .hero-stats { display:flex; gap:3rem; margin-top:4rem; flex-wrap:wrap; justify-content:center; animation:fadeInUp .9s ease .65s both; }
+  .stat { text-align:center; }
+  .stat-n { font-size:2rem; font-weight:900; color:var(--gold); }
+  .stat-l { font-size:.8rem; color:rgba(255,255,255,.55); letter-spacing:.08em; text-transform:uppercase; }
+  .scroll-indicator {
+    position:absolute; bottom:2rem; left:50%; transform:translateX(-50%);
+    display:flex; flex-direction:column; align-items:center; gap:.5rem;
+    color:rgba(255,255,255,.4); font-size:.75rem; animation:bounce 2s infinite;
+  }
+  .scroll-indicator .arrow { width:20px; height:20px; border-right:2px solid rgba(255,255,255,.3); border-bottom:2px solid rgba(255,255,255,.3); transform:rotate(45deg); }
+
+  /* SECTIONS */
+  section { position:relative; z-index:1; }
+  .section-header { text-align:center; margin-bottom:3.5rem; }
+  .section-tag { display:inline-block; color:var(--gold); font-size:.8rem; font-weight:700; letter-spacing:.15em; text-transform:uppercase; margin-bottom:.8rem; }
+  .section-title { font-size:clamp(1.8rem,4vw,2.8rem); font-weight:800; line-height:1.2; }
+  .section-title em { color:var(--gold); font-style:normal; }
+  .section-desc { color:rgba(255,255,255,.6); margin-top:.8rem; font-size:1rem; line-height:1.7; max-width:500px; margin-inline:auto; }
+
+  /* ABOUT */
+  #about { padding:7rem 2rem; background:linear-gradient(180deg,transparent,rgba(13,74,34,.15),transparent); }
+  .about-grid { max-width:1100px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:4rem; align-items:center; }
+  .about-card {
+    background:linear-gradient(135deg,rgba(27,107,53,.35),rgba(13,74,34,.6));
+    border:1px solid rgba(232,160,32,.2); border-radius:24px; padding:3rem 2.5rem;
+    backdrop-filter:blur(10px); position:relative; overflow:hidden;
+  }
+  .about-card::before { content:'🌿'; position:absolute; top:-20px; right:-20px; font-size:8rem; opacity:.07; transform:rotate(-15deg); }
+  .about-card-title { font-size:1.5rem; font-weight:800; color:var(--gold-light); margin-bottom:1rem; }
+  .about-card p { color:rgba(255,255,255,.8); line-height:1.8; margin-bottom:1rem; }
+  .about-features { list-style:none; display:flex; flex-direction:column; gap:.7rem; margin-top:1.5rem; }
+  .about-features li { display:flex; align-items:center; gap:.8rem; color:rgba(255,255,255,.85); font-size:.95rem; }
+  .about-features li .icon { width:32px; height:32px; border-radius:50%; background:rgba(232,160,32,.15); border:1px solid rgba(232,160,32,.3); display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; }
+  .about-img-stack { display:flex; flex-direction:column; gap:1rem; }
+  .about-img-row { display:flex; gap:1rem; }
+  .about-img-box { border-radius:18px; overflow:hidden; background:linear-gradient(135deg,var(--green-dark),var(--green-mid)); border:1px solid rgba(255,255,255,.1); display:flex; align-items:center; justify-content:center; font-size:5rem; }
+  .about-img-box.tall { height:200px; flex:1; }
+  .about-img-box.wide { height:130px; flex:2; }
+  .about-img-box.sq { height:130px; flex:1; }
+
+  /* PRODUCTS */
+  #products { padding:7rem 2rem; }
+  .products-container { max-width:1200px; margin:0 auto; }
+  .filter-tabs { display:flex; gap:.7rem; flex-wrap:wrap; justify-content:center; margin-bottom:3rem; }
+  .filter-tab {
+    padding:.5rem 1.4rem; border-radius:50px;
+    border:1.5px solid rgba(255,255,255,.15);
+    background:transparent; color:rgba(255,255,255,.7);
+    font-size:.85rem; font-weight:600; cursor:pointer; transition:all .25s;
+  }
+  .filter-tab.active, .filter-tab:hover {
+    background:linear-gradient(135deg,var(--green-mid),var(--green-light));
+    border-color:var(--green-light); color:var(--white);
+    box-shadow:0 4px 15px rgba(27,107,53,.4);
+  }
+  .products-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:1.8rem; }
+
+  .product-card {
+    background:linear-gradient(160deg,rgba(27,107,53,.2),rgba(8,21,16,.6));
+    border:1px solid rgba(255,255,255,.08); border-radius:22px; overflow:hidden;
+    transition:transform .35s, box-shadow .35s, border-color .35s;
+    cursor:pointer; position:relative;
+  }
+  .product-card:hover {
+    transform:translateY(-8px);
+    box-shadow:0 20px 50px rgba(0,0,0,.5), 0 0 0 1px rgba(232,160,32,.3);
+    border-color:rgba(232,160,32,.3);
+  }
+  .product-badge {
+    position:absolute; top:1rem; left:1rem; z-index:2;
+    background:var(--gold); color:var(--dark);
+    font-size:.72rem; font-weight:800; padding:.25rem .75rem;
+    border-radius:50px; letter-spacing:.04em;
+  }
+
+  /* ===== ZONE IMAGE PRODUIT ===== */
+  .product-img {
+    height:240px; position:relative; overflow:hidden;
+    background:linear-gradient(135deg,#0a2a12,#1a5c2a);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .product-img img {
+    width:100%; height:100%;
+    object-fit:cover; object-position:center top;
+    transition:transform .5s ease;
+    display:block;
+  }
+  .product-card:hover .product-img img { transform:scale(1.07); }
+  .product-img .placeholder-emoji {
+    font-size:5rem; opacity:.6;
+  }
+  .product-img::after {
+    content:''; position:absolute; bottom:0; left:0; right:0;
+    height:50px;
+    background:linear-gradient(transparent,rgba(8,21,16,.6));
+    pointer-events:none;
+  }
+
+  .product-info { padding:1.4rem; }
+  .product-name { font-size:1.05rem; font-weight:700; color:var(--white); margin-bottom:.3rem; }
+  .product-desc { font-size:.82rem; color:rgba(255,255,255,.5); line-height:1.6; margin-bottom:1.1rem; }
+  .product-footer { display:flex; align-items:center; justify-content:space-between; }
+  .product-price { font-size:1.2rem; font-weight:800; color:var(--gold); }
+  .add-btn {
+    background:linear-gradient(135deg,var(--green-mid),var(--green-light));
+    border:none; border-radius:50px; padding:.5rem 1.1rem;
+    color:var(--white); font-weight:700; font-size:.85rem;
+    cursor:pointer; transition:all .25s; display:flex; align-items:center; gap:.35rem;
+  }
+  .add-btn:hover { background:linear-gradient(135deg,var(--gold),var(--gold-light)); color:var(--dark); box-shadow:0 6px 20px rgba(232,160,32,.4); transform:scale(1.05); }
+
+  /* CART */
+  .cart-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:1998; opacity:0; pointer-events:none; transition:opacity .3s; }
+  .cart-overlay.open { opacity:1; pointer-events:all; }
+  .cart-drawer {
+    position:fixed; top:0; right:-420px; bottom:0;
+    width:min(420px,100vw);
+    background:linear-gradient(180deg,#0D2B17,#081510);
+    border-left:1px solid rgba(232,160,32,.2);
+    z-index:1999; display:flex; flex-direction:column;
+    transition:right .4s cubic-bezier(.25,.46,.45,.94);
+    box-shadow:-20px 0 60px rgba(0,0,0,.5);
+  }
+  .cart-drawer.open { right:0; }
+  .cart-header { padding:1.5rem 1.8rem; border-bottom:1px solid rgba(255,255,255,.08); display:flex; align-items:center; justify-content:space-between; }
+  .cart-header h2 { font-size:1.25rem; font-weight:800; }
+  .cart-header h2 span { color:var(--gold); }
+  .close-cart { width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,.08); border:none; color:var(--white); font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .2s; }
+  .close-cart:hover { background:rgba(255,255,255,.15); }
+  .cart-items { flex:1; overflow-y:auto; padding:1.2rem 1.8rem; }
+  .cart-empty { text-align:center; padding:3rem 0; color:rgba(255,255,255,.3); }
+  .cart-empty .empty-icon { font-size:4rem; margin-bottom:1rem; }
+  .cart-item { display:flex; gap:1rem; align-items:center; padding:1rem 0; border-bottom:1px solid rgba(255,255,255,.06); }
+  .cart-item-thumb { width:56px; height:56px; border-radius:12px; overflow:hidden; background:rgba(27,107,53,.3); flex-shrink:0; }
+  .cart-item-thumb img { width:100%; height:100%; object-fit:cover; }
+  .cart-item-info { flex:1; }
+  .cart-item-name { font-size:.9rem; font-weight:700; }
+  .cart-item-price { font-size:.85rem; color:var(--gold); margin-top:.2rem; }
+  .cart-item-qty { display:flex; align-items:center; gap:.5rem; }
+  .qty-btn { width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,.1); border:none; color:var(--white); font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .2s; }
+  .qty-btn:hover { background:rgba(232,160,32,.3); }
+  .qty-val { font-weight:700; min-width:20px; text-align:center; }
+  .cart-footer { padding:1.5rem 1.8rem; border-top:1px solid rgba(255,255,255,.08); }
+  .cart-total { display:flex; justify-content:space-between; font-size:1.1rem; margin-bottom:1.3rem; }
+  .cart-total span:last-child { font-weight:800; color:var(--gold); font-size:1.3rem; }
+  .whatsapp-btn {
+    width:100%; background:linear-gradient(135deg,#25D366,#128C7E);
+    border:none; border-radius:14px; padding:1rem;
+    color:var(--white); font-weight:800; font-size:1rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:.7rem;
+    transition:all .3s; box-shadow:0 8px 25px rgba(37,211,102,.35);
+  }
+  .whatsapp-btn:hover { transform:translateY(-2px); box-shadow:0 12px 35px rgba(37,211,102,.5); }
+
+  /* CONTACT */
+  #contact { padding:7rem 2rem; background:linear-gradient(180deg,transparent,rgba(13,74,34,.12),transparent); }
+  .contact-grid { max-width:900px; margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:1.5rem; }
+  .contact-card {
+    background:linear-gradient(135deg,rgba(27,107,53,.25),rgba(13,74,34,.45));
+    border:1px solid rgba(232,160,32,.15); border-radius:22px; padding:2rem;
+    text-align:center; transition:transform .3s, border-color .3s; backdrop-filter:blur(8px);
+  }
+  .contact-card:hover { transform:translateY(-6px); border-color:rgba(232,160,32,.4); }
+  .contact-icon { width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:0 auto 1.2rem; background:rgba(232,160,32,.12); border:1px solid rgba(232,160,32,.25); }
+  .contact-card h3 { font-size:1rem; font-weight:700; margin-bottom:.4rem; }
+  .contact-card p { color:rgba(255,255,255,.65); font-size:.9rem; margin-bottom:1.2rem; line-height:1.6; }
+  .contact-card a { display:inline-block; padding:.6rem 1.5rem; border-radius:50px; background:rgba(232,160,32,.15); border:1px solid rgba(232,160,32,.3); color:var(--gold-light); text-decoration:none; font-weight:700; font-size:.85rem; transition:all .25s; }
+  .contact-card a:hover { background:var(--gold); color:var(--dark); border-color:var(--gold); }
+
+  /* FOOTER */
+  footer { position:relative; z-index:1; padding:3rem 2rem; border-top:1px solid rgba(255,255,255,.07); text-align:center; background:rgba(8,21,16,.95); }
+  .footer-logo-img { height:65px; width:auto; margin-bottom:1rem; opacity:.9; filter:drop-shadow(0 2px 8px rgba(0,0,0,.4)); }
+  .footer-desc { color:rgba(255,255,255,.4); font-size:.85rem; margin-bottom:1.5rem; }
+  .footer-links { display:flex; gap:1.5rem; justify-content:center; flex-wrap:wrap; margin-bottom:1.5rem; }
+  .footer-links a { color:rgba(255,255,255,.5); text-decoration:none; font-size:.85rem; transition:color .2s; }
+  .footer-links a:hover { color:var(--gold); }
+  .footer-copy { color:rgba(255,255,255,.25); font-size:.8rem; }
+
+  /* TOAST */
+  .toast {
+    position:fixed; bottom:2rem; left:50%;
+    transform:translateX(-50%) translateY(100px);
+    background:linear-gradient(135deg,var(--green-mid),var(--green-light));
+    color:var(--white); font-weight:700; padding:.8rem 1.8rem;
+    border-radius:50px; box-shadow:0 8px 30px rgba(0,0,0,.4);
+    z-index:3000; transition:transform .4s cubic-bezier(.175,.885,.32,1.275);
+    white-space:nowrap; border:1px solid rgba(255,255,255,.2);
+  }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+
+  /* FLOAT WA */
+  .float-wa {
+    position:fixed; bottom:2rem; right:2rem; z-index:900;
+    width:58px; height:58px; border-radius:50%; background:#25D366;
+    display:flex; align-items:center; justify-content:center; font-size:1.7rem;
+    box-shadow:0 8px 25px rgba(37,211,102,.5); cursor:pointer; text-decoration:none;
+    animation:pulse-ring 2.5s infinite; transition:transform .3s;
+  }
+  .float-wa:hover { transform:scale(1.12); }
+
+  /* ANIMATIONS */
+  @keyframes fadeInDown { from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeInUp   { from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)} }
+  @keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)} }
+  @keyframes pulse-ring { 0%{box-shadow:0 0 0 0 rgba(232,160,32,.5)}70%{box-shadow:0 0 0 14px rgba(232,160,32,0)}100%{box-shadow:0 0 0 0 rgba(232,160,32,0)} }
+  .reveal { opacity:0; transform:translateY(40px); transition:opacity .7s ease, transform .7s ease; }
+  .reveal.visible { opacity:1; transform:translateY(0); }
+
+  @media(max-width:768px){
+    .nav-links { display:none; }
+    .burger { display:flex; }
+    .nav-links.open { display:flex; flex-direction:column; position:fixed; inset:0; top:70px; background:rgba(8,21,16,.98); align-items:center; justify-content:center; gap:2.5rem; font-size:1.3rem; backdrop-filter:blur(20px); }
+    .about-grid { grid-template-columns:1fr; }
+    .about-img-stack { display:none; }
+    nav { padding:.9rem 1.3rem; }
+    .hero-stats { gap:1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a class="nav-logo" href="#hero">
+    <img src="photos/logo.png" alt="Sira Flora" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+    <div style="display:none;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#1B6B35,#E8A020);align-items:center;justify-content:center;font-weight:900;color:white">SF</div>
+  </a>
+  <ul class="nav-links" id="nav-links">
+    <li><a href="#about">À propos</a></li>
+    <li><a href="#products">Plantes</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div style="display:flex;align-items:center;gap:1rem">
+    <button class="cart-btn" onclick="openCart()">
+      🛒 Panier <span class="cart-count" id="cart-count">0</span>
+    </button>
+    <div class="burger" id="burger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <img class="hero-logo" src="photos/logo.png" alt="Sira Flora Logo"
+       onerror="this.style.display='none'"
+       style="background:none;padding:0;" />
+  <div class="hero-badge">🌿 Plantes Naturelles · Qualité de Vie &amp; Bien-être</div>
+  <h1 class="hero-title">
+    La Nature<br/><span>chez vous</span>
+  </h1>
+  <p class="hero-sub">
+    Découvrez notre sélection de plantes naturelles soigneusement choisies
+    pour embellir votre intérieur et améliorer votre bien-être au quotidien.
+  </p>
+  <div class="hero-ctas">
+    <a href="#products" class="btn-primary">🌺 Voir les plantes</a>
+    <a href="#about" class="btn-outline">Notre histoire</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-n">821+</div><div class="stat-l">Abonnés TikTok</div></div>
+    <div class="stat"><div class="stat-n">1280+</div><div class="stat-l">J'aime reçus</div></div>
+    <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Plantes naturelles</div></div>
+  </div>
+  <div class="scroll-indicator"><span>Découvrir</span><div class="arrow"></div></div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-grid">
+    <div class="about-visual">
+      <div class="about-card reveal">
+        <div class="about-card-title">🌿 Qui sommes-nous ?</div>
+        <p>Sira Flora SN est une boutique sénégalaise spécialisée dans les plantes naturelles d'intérieur. Nous croyons que chaque espace mérite une touche de nature vivante.</p>
+        <p>Nos plantes sont soigneusement sélectionnées pour leur beauté, leur facilité d'entretien et leurs bienfaits sur la qualité de l'air.</p>
+        <ul class="about-features">
+          <li><div class="icon">🌱</div>Plantes 100% naturelles et saines</li>
+          <li><div class="icon">🚚</div>Livraison disponible à Dakar</li>
+          <li><div class="icon">💬</div>Conseils d'entretien offerts</li>
+          <li><div class="icon">✨</div>Vases décoratifs inclus</li>
+        </ul>
+      </div>
+    </div>
+    <div class="about-img-stack reveal">
+      <div class="about-img-row">
+        <div class="about-img-box tall">🌵</div>
+        <div class="about-img-box tall" style="background:linear-gradient(135deg,#1a3a0a,#2a6020)">🪴</div>
+      </div>
+      <div class="about-img-row">
+        <div class="about-img-box wide" style="background:linear-gradient(135deg,#0a2a1a,#1a5040)">🌿</div>
+        <div class="about-img-box sq" style="background:linear-gradient(135deg,#1a2a0a,#3a5010)">🌺</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section id="products">
+  <div class="products-container">
+    <div class="section-header reveal">
+      <div class="section-tag">🌸 Notre Catalogue</div>
+      <h2 class="section-title">Nos <em>Plantes</em></h2>
+      <p class="section-desc">Chaque plante est présentée dans un vase décoratif soigneusement choisi.</p>
+    </div>
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">Tout voir</button>
+      <button class="filter-tab" data-filter="hydroponique">Hydroponique</button>
+      <button class="filter-tab" data-filter="interieur">Intérieur</button>
+      <button class="filter-tab" data-filter="promo">En promo</button>
+    </div>
+    <div class="products-grid" id="products-grid"></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-header reveal">
+    <div class="section-tag">📞 Nous trouver</div>
+    <h2 class="section-title">Contactez <em>Sira Flora</em></h2>
+    <p class="section-desc">Commandez, posez vos questions ou suivez-nous sur les réseaux !</p>
+  </div>
+  <div class="contact-grid reveal">
+    <div class="contact-card">
+      <div class="contact-icon">📱</div>
+      <h3>WhatsApp &amp; Téléphone</h3>
+      <p>Disponible pour vos commandes et questions du lundi au samedi.</p>
+      <a href="https://wa.me/221777445164" target="_blank">+221 77 744 51 64</a>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">🎵</div>
+      <h3>TikTok</h3>
+      <p>Suivez-nous sur TikTok pour découvrir nos nouvelles plantes en vidéo !</p>
+      <a href="https://www.tiktok.com/@sira.flora" target="_blank">@sira.flora</a>
+    </div>
+    <div class="contact-card">
+      <div class="contact-icon">📍</div>
+      <h3>Livraison</h3>
+      <p>Livraison disponible à Dakar et environs. Contactez-nous pour les détails.</p>
+      <a href="https://wa.me/221777445164?text=Bonjour%20Sira%20Flora%2C%20infos%20livraison%20?" target="_blank">Renseignez-vous</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <img class="footer-logo-img" src="photos/logo.png" alt="Sira Flora Logo" onerror="this.outerHTML='<div style=\'font-size:1.5rem;font-weight:900;color:#E8A020;margin-bottom:1rem\'>🌿 Sira Flora SN</div>'" />
+  <div class="footer-desc">Plantes Naturelles · Qualité de Vie &amp; Bien-être</div>
+  <div class="footer-links">
+    <a href="#hero">Accueil</a>
+    <a href="#about">À propos</a>
+    <a href="#products">Plantes</a>
+    <a href="#contact">Contact</a>
+    <a href="https://wa.me/221777445164" target="_blank">WhatsApp</a>
+  </div>
+  <div class="footer-copy">© 2025 Sira Flora SN · Dakar, Sénégal · +221 77 744 51 64</div>
+</footer>
+
+<!-- Cart -->
+<div class="cart-overlay" id="cart-overlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-header">
+    <h2>Mon <span>Panier</span></h2>
+    <button class="close-cart" onclick="closeCart()">✕</button>
+  </div>
+  <div class="cart-items" id="cart-items">
+    <div class="cart-empty">
+      <div class="empty-icon">🛒</div>
+      <p>Votre panier est vide</p>
+      <p style="font-size:.8rem;margin-top:.5rem;color:rgba(255,255,255,.2)">Ajoutez des plantes !</p>
+    </div>
+  </div>
+  <div class="cart-footer" id="cart-footer" style="display:none">
+    <div class="cart-total"><span>Total</span><span id="cart-total-price">0 FCFA</span></div>
+    <button class="whatsapp-btn" onclick="orderOnWhatsApp()">
+      💬 Commander sur WhatsApp
+    </button>
+  </div>
+</div>
+
+<a class="float-wa" href="https://wa.me/221777445164?text=Bonjour%20Sira%20Flora%20!%20Je%20voudrais%20passer%20une%20commande." target="_blank" title="WhatsApp">💬</a>
+<div class="toast" id="toast"></div>
+
+<script>
+// ===================== CANVAS BG =====================
+(function(){
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let W, H, particles=[], leaves=[];
+  function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  for(let i=0;i<80;i++) particles.push({x:Math.random()*2000,y:Math.random()*2000,r:Math.random()*1.8+.3,dx:(Math.random()-.5)*.25,dy:(Math.random()-.5)*.25,o:Math.random()*.5+.1,c:Math.random()>.6?'#E8A020':'#2E8B57'});
+  const leafEmojis=['🌿','🍃','🌱','🌺','✿'];
+  for(let i=0;i<14;i++) leaves.push({x:Math.random()*2000,y:Math.random()*2000,size:Math.random()*28+16,dx:(Math.random()-.5)*.35,dy:-Math.random()*.5-.15,rot:Math.random()*360,drot:(Math.random()-.5)*.6,o:Math.random()*.3+.08,emoji:leafEmojis[Math.floor(Math.random()*leafEmojis.length)]});
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const g=ctx.createRadialGradient(W*.5,H*.4,0,W*.5,H*.4,W*.8);
+    g.addColorStop(0,'rgba(13,74,34,.18)'); g.addColorStop(.6,'rgba(8,21,16,.05)'); g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    particles.forEach(p=>{ p.x+=p.dx; p.y+=p.dy; if(p.x<0)p.x=W; if(p.x>W)p.x=0; if(p.y<0)p.y=H; if(p.y>H)p.y=0; ctx.beginPath(); ctx.arc(p.x%W,p.y%H,p.r,0,Math.PI*2); ctx.fillStyle=p.c+(Math.floor(p.o*255).toString(16).padStart(2,'0')); ctx.fill(); });
+    for(let i=0;i<particles.length;i++) for(let j=i+1;j<particles.length;j++){const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<100){ctx.beginPath();ctx.strokeStyle=`rgba(46,139,87,${.08*(1-d/100)})`;ctx.lineWidth=.5;ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);ctx.stroke();}}
+    ctx.save(); leaves.forEach(l=>{ l.x+=l.dx; l.y+=l.dy; l.rot+=l.drot; if(l.y<-50)l.y=H+50; if(l.x<-50)l.x=W+50; if(l.x>W+50)l.x=-50; ctx.save(); ctx.globalAlpha=l.o; ctx.translate(l.x%W,l.y%H); ctx.rotate(l.rot*Math.PI/180); ctx.font=`${l.size}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(l.emoji,0,0); ctx.restore(); }); ctx.restore();
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+window.addEventListener('scroll',()=>document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>60));
+function toggleMenu(){ document.getElementById('nav-links').classList.toggle('open'); }
+document.querySelectorAll('.nav-links a').forEach(a=>a.addEventListener('click',()=>document.getElementById('nav-links').classList.remove('open')));
+
+const observer=new IntersectionObserver(entries=>entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+
+// ===================== PRODUITS =====================
+// 💡 POUR CHANGER UNE PHOTO :
+//    Remplacez le fichier PNG dans le dossier "photos/"
+//    Le nom du fichier doit correspondre exactement au champ "img" ci-dessous
+//    Exemple : photos/plante1.png → votre vraie photo de la plante 1
+const products = [
+  { id:1,  name:"Dieffenbachia Vase Élancé",    desc:"Feuillage tropical dans un vase en verre élancé.",   price:10000, img:"photos/plante1.png",  badge:"Bestseller", cat:"interieur" },
+  { id:2,  name:"Pothos Coupe Violette",         desc:"Pothos luxuriant dans une coupe en céramique violette.", price:7000, img:"photos/plante2.png",  badge:null,         cat:"hydroponique" },
+  { id:3,  name:"Spathiphyllum Coupe Blanche",   desc:"Paix et sérénité dans une élégante coupe blanche.",  price:7500,  img:"photos/plante3.png",  badge:null,         cat:"hydroponique" },
+  { id:4,  name:"Money Plant Bouture",            desc:"Bouture de pothos dans un vase en verre.",           price:4000,  img:"photos/plante4.png",  badge:"Promo",      cat:"promo" },
+  { id:5,  name:"Pothos Vase Sombre",             desc:"Feuillage retombant dans un vase sombre élégant.",   price:9000,  img:"photos/plante5.png",  badge:null,         cat:"interieur" },
+  { id:6,  name:"Dieffenbachia Vase Mauve",       desc:"Feuillage zébré dans un vase mauve bicolore.",       price:10000, img:"photos/plante6.png",  badge:null,         cat:"interieur" },
+  { id:7,  name:"Kentie Palmier Pot Home",        desc:"Palmier d'intérieur dans un pot décoratif Home.",    price:10000, img:"photos/plante7.png",  badge:"Nouveau",    cat:"interieur" },
+  { id:8,  name:"Sansevieria",                    desc:"Plante purificatrice d'air, facile d'entretien.",    price:8500,  img:"photos/plante8.png",  badge:null,         cat:"interieur" },
+  { id:9,  name:"Pothos Vase Turquoise",          desc:"Longues tiges retombantes dans un vase turquoise.",  price:7000,  img:"photos/plante9.png",  badge:"Promo",      cat:"promo" },
+  { id:10, name:"ZZ Plant Pot Granit",            desc:"Zamioculcas robuste dans un pot effet granit.",      price:11000, img:"photos/plante10.png", badge:"Premium",    cat:"interieur" },
+  { id:11, name:"Combo Hydroponique",             desc:"Mélange de plantes hydroponiques dans un bol blanc.",price:9500,  img:"photos/plante11.png", badge:null,         cat:"hydroponique" },
+  { id:12, name:"Dracaena Pot Blanc",             desc:"Grand dracaena élégant dans un pot blanc texturé.",  price:12000, img:"photos/plante12.png", badge:"Coup de ❤️", cat:"interieur" },
+];
+
+const cart = {};
+
+function renderProducts(filter){
+  const grid=document.getElementById('products-grid');
+  const list=filter==='all'?products:products.filter(p=>p.cat===filter);
+  grid.innerHTML=list.map(p=>`
+    <div class="product-card reveal" data-id="${p.id}">
+      ${p.badge?`<div class="product-badge">${p.badge}</div>`:''}
+      <div class="product-img">
+        <img src="${p.img}" alt="${p.name}"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"
+             loading="lazy"/>
+        <div class="placeholder-emoji" style="display:none;font-size:5rem;align-items:center;justify-content:center;width:100%;height:100%">🌿</div>
+      </div>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-desc">${p.desc}</div>
+        <div class="product-footer">
+          <div class="product-price">${p.price.toLocaleString('fr-FR')} FCFA</div>
+          <button class="add-btn" onclick="addToCart(${p.id})">+ Ajouter</button>
+        </div>
+      </div>
+    </div>`).join('');
+  grid.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+}
+
+document.querySelectorAll('.filter-tab').forEach(tab=>{
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+    this.classList.add('active');
+    renderProducts(this.dataset.filter);
+  });
+});
+renderProducts('all');
+
+// ===================== PANIER =====================
+function addToCart(id){
+  const p=products.find(x=>x.id===id);
+  if(!cart[id]) cart[id]={...p,qty:0};
+  cart[id].qty++;
+  updateCartUI();
+  showToast(`✅ ${p.name} ajouté !`);
+}
+function updateCartUI(){
+  const total=Object.values(cart).reduce((s,x)=>s+x.qty,0);
+  document.getElementById('cart-count').textContent=total;
+  const itemsEl=document.getElementById('cart-items');
+  const footerEl=document.getElementById('cart-footer');
+  if(!Object.keys(cart).length){
+    itemsEl.innerHTML=`<div class="cart-empty"><div class="empty-icon">🛒</div><p>Votre panier est vide</p></div>`;
+    footerEl.style.display='none'; return;
+  }
+  footerEl.style.display='block';
+  let totalPrice=0;
+  itemsEl.innerHTML=Object.values(cart).map(item=>{
+    totalPrice+=item.price*item.qty;
+    return `<div class="cart-item">
+      <div class="cart-item-thumb"><img src="${item.img}" alt="${item.name}" onerror="this.parentElement.innerHTML='🌿'" style="width:100%;height:100%;object-fit:cover"/></div>
+      <div class="cart-item-info">
+        <div class="cart-item-name">${item.name}</div>
+        <div class="cart-item-price">${item.price.toLocaleString('fr-FR')} FCFA</div>
+      </div>
+      <div class="cart-item-qty">
+        <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
+        <span class="qty-val">${item.qty}</span>
+        <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('cart-total-price').textContent=totalPrice.toLocaleString('fr-FR')+' FCFA';
+}
+function changeQty(id,delta){ if(!cart[id])return; cart[id].qty+=delta; if(cart[id].qty<=0)delete cart[id]; updateCartUI(); }
+function openCart(){ document.getElementById('cart-drawer').classList.add('open'); document.getElementById('cart-overlay').classList.add('open'); document.body.style.overflow='hidden'; }
+function closeCart(){ document.getElementById('cart-drawer').classList.remove('open'); document.getElementById('cart-overlay').classList.remove('open'); document.body.style.overflow=''; }
+function orderOnWhatsApp(){
+  if(!Object.keys(cart).length)return;
+  let msg="Bonjour Sira Flora 🌿 ! Je souhaite commander :\n\n";
+  let total=0;
+  Object.values(cart).forEach(item=>{ msg+=`🌱 ${item.name} × ${item.qty} = ${(item.price*item.qty).toLocaleString('fr-FR')} FCFA\n`; total+=item.price*item.qty; });
+  msg+=`\n💰 *Total : ${total.toLocaleString('fr-FR')} FCFA*\n\nMerci de confirmer la disponibilité et la livraison !`;
+  window.open(`https://wa.me/221777445164?text=${encodeURIComponent(msg)}`,'_blank');
+}
+let toastTimer;
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2800); }
+</script>
+</body>
+</html>

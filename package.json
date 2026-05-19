@@ -1,0 +1,11 @@
+{
+  "name": "sira-flora",
+  "version": "1.0.0",
+  "description": "Site web Sira Flora SN - Plantes Naturelles",
+  "scripts": {
+    "start": "npx serve . -p $PORT"
+  },
+  "dependencies": {
+    "serve": "^14.2.3"
+  }
+}
