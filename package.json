@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "Site web Sira Flora SN - Plantes Naturelles",
   "scripts": {
-    "start": "serve -s . -l tcp://0.0.0.0:$PORT"
+    "start": "node server.js"
   },
-  "dependencies": {
-    "serve": "^14.2.3"
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
